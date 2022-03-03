@@ -83,7 +83,7 @@ ATTACH_POLICY = """{
             "Action": [
                 "logs:*"
             ],
-            "Resource": "arn:aws:logs:*:*:*"
+            "Resource": "arn:aws-cn:logs:*:*:*"
         },
         {
             "Effect": "Allow",
@@ -123,35 +123,35 @@ ATTACH_POLICY = """{
             "Action": [
                 "s3:*"
             ],
-            "Resource": "arn:aws:s3:::*"
+            "Resource": "arn:aws-cn:s3:::*"
         },
         {
             "Effect": "Allow",
             "Action": [
                 "kinesis:*"
             ],
-            "Resource": "arn:aws:kinesis:*:*:*"
+            "Resource": "arn:aws-cn:kinesis:*:*:*"
         },
         {
             "Effect": "Allow",
             "Action": [
                 "sns:*"
             ],
-            "Resource": "arn:aws:sns:*:*:*"
+            "Resource": "arn:aws-cn:sns:*:*:*"
         },
         {
             "Effect": "Allow",
             "Action": [
                 "sqs:*"
             ],
-            "Resource": "arn:aws:sqs:*:*:*"
+            "Resource": "arn:aws-cn:sqs:*:*:*"
         },
         {
             "Effect": "Allow",
             "Action": [
                 "dynamodb:*"
             ],
-            "Resource": "arn:aws:dynamodb:*:*:*"
+            "Resource": "arn:aws-cn:dynamodb:*:*:*"
         },
         {
             "Effect": "Allow",
@@ -2354,7 +2354,7 @@ class Zappa:
         result = self.create_event_permission(
             lambda_name,
             "cognito-idp.amazonaws.com",
-            "arn:aws:cognito-idp:{}:{}:userpool/{}".format(
+            "arn:aws-cn:cognito-idp:{}:{}:userpool/{}".format(
                 self.aws_region,
                 self.sts_client.get_caller_identity().get("Account"),
                 user_pool,
