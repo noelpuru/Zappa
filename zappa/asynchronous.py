@@ -228,7 +228,7 @@ class SnsAsyncResponse(LambdaAsyncResponse):
             else:
                 sts_client = STS_CLIENT
             AWS_ACCOUNT_ID = sts_client.get_caller_identity()["Account"]
-            self.arn = "arn:aws:sns:{region}:{account}:{topic_name}".format(
+            self.arn = "arn:aws-cn:sns:{region}:{account}:{topic_name}".format(
                 region=self.aws_region,
                 account=AWS_ACCOUNT_ID,
                 topic_name=get_topic_name(self.lambda_function_name),
