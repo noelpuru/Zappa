@@ -1254,7 +1254,7 @@ class ZappaCLI:
             )
 
             api_url = None
-            if endpoint_url and "amazonaws.com" not in endpoint_url:
+            if endpoint_url and "amazonaws.cn" not in endpoint_url:
                 api_url = self.zappa.get_api_url(self.lambda_name, self.api_stage)
 
                 if endpoint_url != api_url:

@@ -65,9 +65,9 @@ ASSUME_POLICY = """{
       "Effect": "Allow",
       "Principal": {
         "Service": [
-          "apigateway.amazonaws.com",
-          "lambda.amazonaws.com",
-          "events.amazonaws.com"
+          "apigateway.amazonaws.cn",
+          "lambda.amazonaws.cn",
+          "events.amazonaws.cn"
         ]
       },
       "Action": "sts:AssumeRole"
@@ -1500,7 +1500,7 @@ class Zappa:
         """
         Wait until lambda State=Active
         """
-        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/lambda.html#waiters
+        # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/lambda.html#waiters
         waiter = self.lambda_client.get_waiter("function_active")
         print(f"Waiting for lambda function [{function_name}] to become active...")
         waiter.wait(FunctionName=function_name)
@@ -1509,7 +1509,7 @@ class Zappa:
         """
         Wait until lambda LastUpdateStatus=Successful
         """
-        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/lambda.html#waiters
+        # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/lambda.html#waiters
         waiter = self.lambda_client.get_waiter("function_updated")
         print(f"Waiting for lambda function [{function_name}] to be updated...")
         waiter.wait(FunctionName=function_name)
@@ -1574,7 +1574,7 @@ class Zappa:
         print("Deploying ALB infrastructure...")
 
         # Create load balancer
-        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.create_load_balancer
+        # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.create_load_balancer
         kwargs = dict(
             Name=lambda_name,
             Subnets=alb_vpc_config["SubnetIds"],
@@ -1617,7 +1617,7 @@ class Zappa:
         )
 
         # Create/associate target group.
-        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.create_target_group
+        # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.create_target_group
         kwargs = dict(
             Name=lambda_name,
             TargetType="lambda",
@@ -1642,18 +1642,18 @@ class Zappa:
         )
 
         # Allow execute permissions from target group to lambda.
-        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/lambda.html#Lambda.Client.add_permission
+        # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/lambda.html#Lambda.Client.add_permission
         kwargs = dict(
             Action="lambda:InvokeFunction",
             FunctionName="{}:{}".format(lambda_arn, ALB_LAMBDA_ALIAS),
-            Principal="elasticloadbalancing.amazonaws.com",
+            Principal="elasticloadbalancing.amazonaws.cn",
             SourceArn=target_group_arn,
             StatementId=lambda_name,
         )
         response = self.lambda_client.add_permission(**kwargs)
 
         # Register target group to lambda association.
-        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.register_targets
+        # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.register_targets
         kwargs = dict(
             TargetGroupArn=target_group_arn,
             Targets=[{"Id": "{}:{}".format(lambda_arn, ALB_LAMBDA_ALIAS)}],
@@ -1661,7 +1661,7 @@ class Zappa:
         response = self.elbv2_client.register_targets(**kwargs)
 
         # Bind listener to load balancer with default rule to target group.
-        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.create_listener
+        # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.create_listener
         kwargs = dict(
             # TODO: Listeners support custom ssl certificates (Certificates). For now we leave this default.
             Certificates=[{"CertificateArn": alb_vpc_config["CertificateArn"]}],
@@ -1689,7 +1689,7 @@ class Zappa:
 
         # Locate and delete alb/lambda permissions
         try:
-            # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/lambda.html#Lambda.Client.remove_permission
+            # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/lambda.html#Lambda.Client.remove_permission
             self.lambda_client.remove_permission(
                 FunctionName=lambda_name, StatementId=lambda_name
             )
@@ -1701,7 +1701,7 @@ class Zappa:
 
         # Locate and delete load balancer
         try:
-            # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.describe_load_balancers
+            # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.describe_load_balancers
             response = self.elbv2_client.describe_load_balancers(Names=[lambda_name])
             if not (response["LoadBalancers"]) or len(response["LoadBalancers"]) > 1:
                 raise EnvironmentError(
@@ -1710,7 +1710,7 @@ class Zappa:
                     )
                 )
             load_balancer_arn = response["LoadBalancers"][0]["LoadBalancerArn"]
-            # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.describe_listeners
+            # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.describe_listeners
             response = self.elbv2_client.describe_listeners(
                 LoadBalancerArn=load_balancer_arn
             )
@@ -1725,10 +1725,10 @@ class Zappa:
             else:
                 listener_arn = response["Listeners"][0]["ListenerArn"]
                 # Remove the listener. This explicit deletion of the listener seems necessary to avoid ResourceInUseExceptions when deleting target groups.
-                # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.delete_listener
+                # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.delete_listener
                 response = self.elbv2_client.delete_listener(ListenerArn=listener_arn)
             # Remove the load balancer and wait for completion
-            # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.delete_load_balancer
+            # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.delete_load_balancer
             response = self.elbv2_client.delete_load_balancer(
                 LoadBalancerArn=load_balancer_arn
             )
@@ -1745,11 +1745,11 @@ class Zappa:
         # Locate and delete target group
         try:
             # Locate the lambda ARN
-            # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/lambda.html#Lambda.Client.get_function
+            # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/lambda.html#Lambda.Client.get_function
             response = self.lambda_client.get_function(FunctionName=lambda_name)
             lambda_arn = response["Configuration"]["FunctionArn"]
             # Locate the target group ARN
-            # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.describe_target_groups
+            # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.describe_target_groups
             response = self.elbv2_client.describe_target_groups(Names=[lambda_name])
             if not (response["TargetGroups"]) or len(response["TargetGroups"]) > 1:
                 raise EnvironmentError(
@@ -1770,7 +1770,7 @@ class Zappa:
                 WaiterConfig={"Delay": 3},
             )
             # Remove the target group
-            # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.delete_target_group
+            # https://boto3.amazonaws.cn/v1/documentation/api/latest/reference/services/elbv2.html#ElasticLoadBalancingv2.Client.delete_target_group
             self.elbv2_client.delete_target_group(TargetGroupArn=target_group_arn)
         except botocore.exceptions.ClientError as e:  # pragma: no cover
             print(e.response["Error"]["Code"])
@@ -2073,7 +2073,7 @@ class Zappa:
             ],
         )
 
-        return "https://{}.execute-api.{}.amazonaws.com/{}".format(
+        return "https://{}.execute-api.{}.amazonaws.cn/{}".format(
             api_id, self.boto_session.region_name, stage_name
         )
 
@@ -2353,7 +2353,7 @@ class Zappa:
         # Now we need to add a policy to the IAM that allows cognito access
         result = self.create_event_permission(
             lambda_name,
-            "cognito-idp.amazonaws.com",
+            "cognito-idp.amazonaws.cn",
             "arn:aws-cn:cognito-idp:{}:{}:userpool/{}".format(
                 self.aws_region,
                 self.sts_client.get_caller_identity().get("Account"),
@@ -2456,11 +2456,11 @@ class Zappa:
 
         self.upload_to_s3(template, working_bucket, disable_progress=disable_progress)
         if self.boto_session.region_name == "us-gov-west-1":
-            url = "https://s3-us-gov-west-1.amazonaws.com/{0}/{1}".format(
+            url = "https://s3-us-gov-west-1.amazonaws.cn/{0}/{1}".format(
                 working_bucket, template
             )
         else:
-            url = "https://s3.amazonaws.com/{0}/{1}".format(working_bucket, template)
+            url = "https://s3.amazonaws.cn/{0}/{1}".format(working_bucket, template)
 
         tags = [
             {"Key": key, "Value": self.tags[key]}
@@ -2573,7 +2573,7 @@ class Zappa:
         """
         api_id = self.get_api_id(lambda_name)
         if api_id:
-            return "https://{}.execute-api.{}.amazonaws.com/{}".format(
+            return "https://{}.execute-api.{}.amazonaws.cn/{}".format(
                 api_id, self.boto_session.region_name, stage_name
             )
         else:
@@ -3062,7 +3062,7 @@ class Zappa:
 
                     # Specific permissions are necessary for any trigger to work.
                     self.create_event_permission(
-                        lambda_name, "events.amazonaws.com", rule_response["RuleArn"]
+                        lambda_name, "events.amazonaws.cn", rule_response["RuleArn"]
                     )
 
                     # Overwriting the input, supply the original values and add kwargs
@@ -3129,7 +3129,7 @@ class Zappa:
                     svc = ",".join(event["event_source"]["events"])
                     self.create_event_permission(
                         lambda_name,
-                        service + ".amazonaws.com",
+                        service + ".amazonaws.cn",
                         event["event_source"]["arn"],
                     )
                 else:
@@ -3316,7 +3316,7 @@ class Zappa:
         )
         # Add Lambda permission for SNS to invoke function
         self.create_event_permission(
-            lambda_name=lambda_name, principal="sns.amazonaws.com", source_arn=topic_arn
+            lambda_name=lambda_name, principal="sns.amazonaws.cn", source_arn=topic_arn
         )
         # Add rule for SNS topic as a event source
         add_event_source(
