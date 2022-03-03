@@ -530,7 +530,7 @@ class LambdaHandler:
                     logger.debug("host found: [{}]".format(host))
 
                     if host:
-                        if "amazonaws.com" in host:
+                        if "amazonaws.cn" in host:
                             logger.debug("amazonaws found in host")
                             # The path provided in th event doesn't include the
                             # stage, so we must tell Flask to include the API
@@ -544,7 +544,7 @@ class LambdaHandler:
                             pass
                         else:
                             # Assume the requests received will be to the
-                            # amazonaws.com endpoint, so tell Flask to include the
+                            # amazonaws.cn endpoint, so tell Flask to include the
                             # API stage
                             script_name = "/" + settings.API_STAGE
 
